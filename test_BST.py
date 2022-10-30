@@ -227,7 +227,7 @@ class TestDeleteNode(unittest.TestCase):
         self.assertEqual(replacementNode.RightChild, deletedNodeRightChild)
         self.assertEqual(replacementNode.LeftChild, deletedNodeLeftChild)
         self.assertTrue(delResult)
-        
+
     def testDeleteRootNode(self):
         bst = makeFullBST(levelCount = 3)
         keyToDel = 16
@@ -246,4 +246,12 @@ class TestDeleteNode(unittest.TestCase):
         self.assertEqual(replacementNode.Parent, deletedNodeParent)
         self.assertEqual(replacementNode.RightChild, deletedNodeRightChild)
         self.assertEqual(replacementNode.LeftChild, deletedNodeLeftChild)
-        self.assertTrue(delResult)        
+        self.assertTrue(delResult)
+    
+    def testDeleteLastNode(self):
+        bst = makeFullBST(levelCount = 1)
+        keyToDel = bst.Root.NodeKey
+        delResult = bst.DeleteNodeByKey(keyToDel)
+        self.assertEqual(bst.Root, None)
+        self.assertTrue(delResult)
+
