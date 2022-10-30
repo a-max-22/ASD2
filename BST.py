@@ -101,6 +101,10 @@ class BST:
     def DeleteNodeByKey(self, key):
         searchResult = self.FindNodeByKey(key)
         if not searchResult.NodeHasKey:  return False # если узел не найден
+        if searchResult.Node == self.Root:
+            self.Root = None
+            return True
+            
         deletedNode = searchResult.Node
         deletedNodeChildren = (deletedNode.LeftChild, deletedNode.RightChild)
         deletedNodeParent = deletedNode.Parent
