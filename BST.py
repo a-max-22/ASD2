@@ -94,13 +94,14 @@ class BST:
 
     def _replaceChild(self, replacedChildNode, replacementNode):
         parent = replacedChildNode.Parent
+        if parent is None: return
         if parent.LeftChild == replacedChildNode: parent.LeftChild = replacementNode
         if parent.RightChild == replacedChildNode: parent.RightChild = replacementNode        
 
     def DeleteNodeByKey(self, key):
         searchResult = self.FindNodeByKey(key)
         if not searchResult.NodeHasKey:  return False # если узел не найден
-        deletedNode = searchResult.Node        
+        deletedNode = searchResult.Node
         deletedNodeChildren = (deletedNode.LeftChild, deletedNode.RightChild)
         deletedNodeParent = deletedNode.Parent
         
