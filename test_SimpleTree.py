@@ -1,141 +1,296 @@
-from concurrent.futures.process import _chain_from_iterable_of_lists
-import imp
+
 import unittest
 
-from SimpleTree import SimpleTree, SimpleTreeNode
+from BST import BST, BSTFind, BSTNode
+
+def makeChildNodes(parent: BSTNode, childrenLevelCount):
+    if childrenLevelCount == 1: return 
+
+    childKeyEvaluationDelta = 2 ** (childrenLevelCount-1)
+    leftChildKey = parent.NodeKey - childKeyEvaluationDelta
+    rightChildKey = parent.NodeKey + childKeyEvaluationDelta
+    leftChild = BSTNode(key = leftChildKey, val = leftChildKey, parent = parent)
+    rightChild = BSTNode(key = rightChildKey, val = rightChildKey, parent = parent)
+    parent.LeftChild = leftChild
+    parent.RightChild = rightChild
+    makeChildNodes(leftChild, childrenLevelCount-1)
+    makeChildNodes(rightChild, childrenLevelCount-1)
+
+ 
+def makeFullBST(levelCount):
+    basicValue = 2 ** (levelCount+1)
+    rootNode = BSTNode(key = basicValue, val = basicValue, parent = None)
+    makeChildNodes(rootNode, levelCount)
+    return BST(rootNode)
+
+def getBstNodes(bst:BST):
+    nodesList = [bst.Root]
+    currentNodeIndex = 0
+    while currentNodeIndex < len(nodesList) :
+        currentNode : BSTNode = nodesList[currentNodeIndex]
+        if currentNode.LeftChild is not None: nodesList.append(currentNode.LeftChild)
+        if currentNode.RightChild is not None: nodesList.append(currentNode.RightChild)
+        currentNodeIndex += 1
+    return nodesList
+
+def getNodeByKey(nodesList, key):
+    for node in nodesList:
+        if node.NodeKey == key: return node
+
+def printNodesListKeys(nodesList):
+    print([x.NodeKey for x in nodesList ])
 
 
-def makeSingleChildTree():
-    rootVal = 0
-    childVal = 1
-    rootNode = SimpleTreeNode(rootVal, parent = None)
-    childNode = SimpleTreeNode(rootVal, parent = None)
-    tree = SimpleTree(rootNode)
-    tree.AddChild(rootNode, childNode)
-    return tree, rootNode, childNode
-
-def makeTree(levelsCount, childCountForEachNode):
-    allNodesList = []
-    rootVal = 0
-    rootNode = SimpleTreeNode(rootVal, parent = None)
-    tree = SimpleTree(rootNode)
-    allNodesList.append(rootNode)
-
-    previousLevelChildren = [rootNode]
-    for currentLevel in range(1, levelsCount):
-        currentLevelChildren = [] 
-        for currentParent in previousLevelChildren:
-            for i in range(0, childCountForEachNode):
-                childNode = SimpleTreeNode(currentLevel, parent = None)
-                tree.AddChild(currentParent, childNode)
-                currentLevelChildren.append(childNode)
-        allNodesList += currentLevelChildren
-        previousLevelChildren = currentLevelChildren  
-    return tree, allNodesList
-
-def getNodesEqualToValue(nodesList, value):
-    return [x for x in nodesList if x.NodeValue == value]
-
-class TestAddChild(unittest.TestCase):
-    def testAddToRoot(self):
-        rootVal = 0
-        childVal = 1
-        rootNode = SimpleTreeNode(rootVal, parent = None)
-        childNode = SimpleTreeNode(rootVal, parent = None)
-        tree = SimpleTree(rootNode)
-        tree.AddChild(rootNode, childNode)
-        self.assertEqual(rootNode.Children, [childNode])
-        self.assertEqual(childNode.Parent, rootNode)
-
-class TestDeleteNode(unittest.TestCase):
-    def testDeleteChildOfRoot(self):
-        tree, rootNode, childNode = makeSingleChildTree()
-        tree.DeleteNode(childNode)
-        self.assertEqual(rootNode.Children, [])
-        self.assertEqual(childNode.Parent, None)
-
-    def testDeleteRoot(self):
-        tree, rootNode, childNode = makeSingleChildTree()
-        tree.DeleteNode(rootNode) # не удаляет корневой элемент
-        self.assertEqual(rootNode.Parent, None)
-        self.assertEqual(tree.Root, rootNode)
-
-    def testDeleteNonExistentNode(self):
-        tree, rootNode, childNode = makeSingleChildTree()
-        tree.DeleteNode(childNode)
-        tree.DeleteNode(childNode)
-        self.assertEqual(rootNode.Children, [])
-        self.assertEqual(childNode.Parent, None)
-
-class TestGetAllNodes(unittest.TestCase):
-    def testGetAllNodesForRoot(self):
-        rootVal = 0
-        rootNode = SimpleTreeNode(rootVal, parent = None)
-        tree = SimpleTree(rootNode)
-        nodesList = tree.GetAllNodes()
-        self.assertEqual(nodesList, [rootNode])
-
-    def testGetNodesForEmptyTree(self):
-        tree = SimpleTree(None)
-        nodesList = tree.GetAllNodes()
-        self.assertEqual(nodesList, [])
-
-    def testGetNodesForSingleChild(self):
-        tree, rootNode, childNode = makeSingleChildTree()
-        nodesList = tree.GetAllNodes()
-        self.assertEqual(nodesList, [rootNode, childNode])
-
-    def testGetNodesForTwoLevelTree(self):
-        tree, expectedNodesList = makeTree(levelsCount = 2, childCountForEachNode = 2)
-        actualNodesList = tree.GetAllNodes()
-        self.assertCountEqual(actualNodesList, expectedNodesList)
-
-class TestFindNodesByValue(unittest.TestCase):
+class TestFindNodeByKey(unittest.TestCase):
     def testFindInEmptyTree(self):
-        tree = SimpleTree(None)
-        nodesList = tree.FindNodesByValue(val = 3)
-        self.assertEqual(nodesList, [])
+        bst = BST(node = None)
+        soughtKey = 12
+        result = bst.FindNodeByKey(soughtKey)
+        self.assertEqual(result.Node, None)
+        self.assertFalse(result.ToLeft)
+        self.assertFalse(result.NodeHasKey)
 
-    def testFindAbsentNode(self):
-        tree, treeNodesList = makeTree(levelsCount = 2, childCountForEachNode = 2)
-        nodesList = tree.FindNodesByValue(val = 4)
-        self.assertEqual(nodesList, [])
 
-    def testFindPresentNodes(self):
-        tree, treeNodesList = makeTree(levelsCount = 4, childCountForEachNode = 2)
-        val = 1
-        nodesList = tree.FindNodesByValue(val)
-        expectedList = getNodesEqualToValue(treeNodesList, val)
-        self.assertCountEqual(nodesList, expectedList)
+    def testFindPresentNode(self):
+        soughtKey = 12
+        bst = makeFullBST(levelCount = 3)
+        result = bst.FindNodeByKey(soughtKey)
+        nodes = getBstNodes(bst)
+        expectedParentNode = getNodeByKey(nodes, soughtKey)
+        
+        self.assertEqual(result.Node, expectedParentNode)
+        self.assertFalse(result.ToLeft)
+        self.assertTrue(result.NodeHasKey)
 
-class TestMoveNode(unittest.TestCase):
-    def testMoveNode(self):
-        # root tree with two child nodes
-        tree, treeNodesList = makeTree(levelsCount = 2, childCountForEachNode = 2)
-        originalNode = treeNodesList[1]
-        orignalParent = originalNode.Parent
-        newParentNode = treeNodesList[2]
-        tree.MoveNode(originalNode, newParentNode)
-        self.assertEqual(originalNode.Parent, newParentNode)
-        self.assertCountEqual([originalNode], newParentNode.Children)
-        self.assertEqual(orignalParent.Children, [newParentNode])
+    def testFindAbsentNodePositionInLeftKeyLeafNode(self): 
+        soughtKey = 9
+        expectedParentKey = 10
+        bst = makeFullBST(levelCount = 3)
+        result = bst.FindNodeByKey(soughtKey)
+        nodes = getBstNodes(bst)
+        expectedParentNode = getNodeByKey(nodes, expectedParentKey)
+        
+        self.assertEqual(expectedParentKey, result.Node.NodeKey)
+        self.assertEqual(result.Node, expectedParentNode)
+        self.assertTrue(result.ToLeft)
+        self.assertFalse(result.NodeHasKey)
+
+    def testFindAbsentNodeInsertPositionInRightKey(self):
+        soughtKey = 15
+        expectedParentKey = 14
+        bst = makeFullBST(levelCount = 3)
+        result = bst.FindNodeByKey(soughtKey)
+        nodes = getBstNodes(bst)
+        expectedParentNode = getNodeByKey(nodes, expectedParentKey)
+
+        self.assertEqual(expectedParentKey, result.Node.NodeKey)
+        self.assertEqual(result.Node, expectedParentNode)
+        self.assertFalse(result.ToLeft)
+        self.assertFalse(result.NodeHasKey)
+
+
+class TestAddKeyValue(unittest.TestCase):
+    def testAddToEmptyTree(self):
+        bst = BST(node = None)
+        result =  bst.AddKeyValue(key = 16, val = 16)
+        nodes = getBstNodes(bst)
+        
+        self.assertEqual(bst.Root, nodes[0])
+        self.assertEqual(bst.Root.NodeKey, 16)
+        self.assertEqual(bst.Root.NodeValue, 16)
+        self.assertEqual(bst.Root.LeftChild, None)
+        self.assertEqual(bst.Root.RightChild, None)
+        self.assertTrue(result)
+
+    def testAddPresentNode(self):
+        soughtKey = 12
+        bst = makeFullBST(levelCount = 3)
+        result = bst.AddKeyValue(soughtKey, soughtKey)        
+        self.assertFalse(result)
+
+    def testAddNodeToLeft(self):
+        addedKey = 9
+        expectedParentKey = 10
+        bst = makeFullBST(levelCount = 3)
+        wasNAddedNodeAbsent = bst.AddKeyValue(key = addedKey, val = addedKey)
+        nodes = getBstNodes(bst)
+        expectedParentNode = getNodeByKey(nodes, expectedParentKey)
+        expectedChildNode = getNodeByKey(nodes, addedKey)
+        self.assertTrue(wasNAddedNodeAbsent)
+        self.assertEqual(expectedChildNode.Parent, expectedParentNode)
+        self.assertEqual(expectedParentNode.LeftChild, expectedChildNode)
+        self.assertEqual(expectedParentNode.RightChild,  None)
+
+    def testAddNodeToRight(self):
+        addedKey = 15
+        expectedParentKey = 14
+        bst = makeFullBST(levelCount = 3)
+        wasNAddedNodeAbsent = bst.AddKeyValue(key = addedKey, val = addedKey)
+        nodes = getBstNodes(bst)
+        expectedParentNode = getNodeByKey(nodes, expectedParentKey)
+        expectedChildNode = getNodeByKey(nodes, addedKey)
+        self.assertTrue(wasNAddedNodeAbsent)
+        self.assertEqual(expectedChildNode.Parent, expectedParentNode)
+        self.assertEqual(expectedParentNode.RightChild, expectedChildNode)
+        self.assertEqual(expectedParentNode.LeftChild,  None)
+    
+    def testAddNodeToRootLeft(self):
+        bst = makeFullBST(levelCount = 1)
+        keyToAdd = bst.Root.NodeKey - 1
+        addKeyResult = bst.AddKeyValue(key = keyToAdd, val = keyToAdd)
+        nodes = getBstNodes(bst)
+        addedNode = getNodeByKey(nodes, keyToAdd)
+        self.assertEqual(bst.Root.LeftChild, addedNode)
+        self.assertEqual(bst.Root.RightChild, None)
+        self.assertTrue(addKeyResult)
+    
+    def testAddNodeToRootRight(self):
+        bst = makeFullBST(levelCount = 1)
+        keyToAdd = bst.Root.NodeKey + 1
+        addKeyResult = bst.AddKeyValue(key = keyToAdd, val = keyToAdd)
+        nodes = getBstNodes(bst)
+        addedNode = getNodeByKey(nodes, keyToAdd)
+        self.assertEqual(bst.Root.RightChild, addedNode)
+        self.assertEqual(bst.Root.LeftChild, None)
+        self.assertTrue(addKeyResult)
+    
+
+class TestFindMinMax(unittest.TestCase):
+    def testFindMin(self):
+        bst = makeFullBST(levelCount = 3)
+        expectedMin = 10
+        actualMin = bst.FinMinMax(bst.Root, FindMax = False)
+        self.assertEqual(expectedMin, actualMin)
+
+    def testFindMax(self):
+        bst = makeFullBST(levelCount = 3)
+        expectedMax = 22
+        expectedMax = bst.FinMinMax(bst.Root, FindMax = True)
+        self.assertEqual(expectedMax, expectedMax)
+
+    def testFindMinSubTree(self):
+        bst = makeFullBST(levelCount = 3)
+        expectedMin = 18
+        subtreeNodeKey = 20
+        nodes = getBstNodes(bst)
+        subtreeNode = getNodeByKey(nodes, subtreeNodeKey)
+        actualMin = bst.FinMinMax(subtreeNode, FindMax = False)
+        self.assertEqual(actualMin, expectedMin)
+
+    def testFindMaxSubTree(self):
+        bst = makeFullBST(levelCount = 3)
+        expectedMax = 14
+        subtreeNodeKey = 12
+        nodes = getBstNodes(bst)
+        subtreeNode = getNodeByKey(nodes, subtreeNodeKey)
+        actualMax = bst.FinMinMax(subtreeNode, FindMax = True)
+        self.assertEqual(actualMax, expectedMax)
+
 
 class TestCount(unittest.TestCase):
-   def testCount(self):
-        # root tree with two child nodes
-        tree, treeNodesList = makeTree(levelsCount = 2, childCountForEachNode = 2)
-        self.assertEqual(tree.Count(), len(treeNodesList))
+    def testEmpty(self):
+        bst = BST(None)
+        count = bst.Count()
+        self.assertEqual(count, 0)
+    
+    def testNonEmpty(self):
+        levelCount = 3
+        bst = makeFullBST(levelCount)
+        count = bst.Count()
+        self.assertEqual(count, 2**levelCount-1)
 
-class TestLeafCount(unittest.TestCase):
-   def testLeafCount(self):
-        # root tree with two child nodes
-        tree, treeNodesList = makeTree(levelsCount = 2, childCountForEachNode = 2)
-        self.assertEqual(tree.LeafCount(), 2)
 
-class TestLevels(unittest.TestCase):
-   def testLelvels(self):
-        tree, treeNodesList = makeTree(levelsCount = 3, childCountForEachNode = 2)
-        tree.AssignLevelToNodes()
-        levelsList = [x.Level for x in treeNodesList]
-        expectedList = [0,1,1,2,2,2,2]
-        self.assertEqual(expectedList, levelsList)
+class TestDeleteNode(unittest.TestCase):
+    def testDeleteLeftLeaf(self):
+        bst = makeFullBST(levelCount = 3)
+        keyToDel = 10
+        parentKey = 12
+        parentAnotherChildKey = 14
+        nodes = getBstNodes(bst)
+        deletedNode = getNodeByKey(nodes, keyToDel)
+        deletedNodeParent = getNodeByKey(nodes, parentKey)
+        parentAnotherChild = getNodeByKey(nodes, parentAnotherChildKey)
+        delResult = bst.DeleteNodeByKey(keyToDel)
+        self.assertTrue(deletedNodeParent.LeftChild is None)
+        self.assertEqual(deletedNodeParent.RightChild, parentAnotherChild) 
+        self.assertTrue(delResult)
+
+    def testDeleteRightLeaf(self):
+        bst = makeFullBST(levelCount = 3)
+        keyToDel = 14
+        parentKey = 12
+        parentAnotherChildKey = 10
+        nodes = getBstNodes(bst)
+        deletedNode = getNodeByKey(nodes, keyToDel)
+        deletedNodeParent = getNodeByKey(nodes, parentKey)
+        parentAnotherChild = getNodeByKey(nodes, parentAnotherChildKey)
+        delResult = bst.DeleteNodeByKey(keyToDel)
+        self.assertEqual(deletedNodeParent.LeftChild, parentAnotherChild)
+        self.assertTrue(deletedNodeParent.RightChild is None) 
+        self.assertTrue(delResult)
+    
+    def testDeleteNonLeafNodeRightChild(self):
+        bst = makeFullBST(levelCount = 4)
+        keyToDel = 40
+        parentKey = 32
+        replacementKey = 42
+        deletedNodeRightChildKey = 44
+        deletedNodeLeftChildKey = 36
+        nodes = getBstNodes(bst)
+        deletedNodeParent = getNodeByKey(nodes, parentKey)
+        replacementNode = getNodeByKey(nodes, replacementKey)
+        deletedNodeRightChild = getNodeByKey(nodes, deletedNodeRightChildKey)
+        deletedNodeLeftChild = getNodeByKey(nodes, deletedNodeLeftChildKey)
+
+        delResult = bst.DeleteNodeByKey(keyToDel)
+
+        self.assertEqual(deletedNodeParent.RightChild, replacementNode)
+        self.assertEqual(replacementNode.RightChild, deletedNodeRightChild)
+        self.assertEqual(replacementNode.LeftChild, deletedNodeLeftChild)
+        self.assertTrue(delResult)
+
+    def testDeleteNonLeafNodeLeftChild(self):
+        bst = makeFullBST(levelCount = 4)
+        keyToDel = 24
+        parentKey = 32
+        replacementKey = 26
+        deletedNodeRightChildKey = 28
+        deletedNodeLeftChildKey = 20
+        nodes = getBstNodes(bst)
+        deletedNodeParent = getNodeByKey(nodes, parentKey)
+        replacementNode = getNodeByKey(nodes, replacementKey)
+        deletedNodeRightChild = getNodeByKey(nodes, deletedNodeRightChildKey)
+        deletedNodeLeftChild = getNodeByKey(nodes, deletedNodeLeftChildKey)
+
+        delResult = bst.DeleteNodeByKey(keyToDel)
+
+        self.assertEqual(deletedNodeParent.LeftChild, replacementNode)
+        self.assertEqual(replacementNode.RightChild, deletedNodeRightChild)
+        self.assertEqual(replacementNode.LeftChild, deletedNodeLeftChild)
+        self.assertTrue(delResult)
+
+    def testDeleteRootNode(self):
+        bst = makeFullBST(levelCount = 3)
+        replacementKey = 18
+        deletedNodeRightChildKey = 20
+        deletedNodeLeftChildKey = 12
+        nodes = getBstNodes(bst)
+
+        deletedNodeParent = None
+        replacementNode = getNodeByKey(nodes, replacementKey)
+        deletedNodeRightChild = getNodeByKey(nodes, deletedNodeRightChildKey)
+        deletedNodeLeftChild = getNodeByKey(nodes, deletedNodeLeftChildKey)
+        deletedNode = bst.Root
+
+        delResult = bst.DeleteNodeByKey(bst.Root.NodeKey)
+        self.assertEqual(replacementNode.Parent, deletedNodeParent)
+        self.assertEqual(replacementNode.RightChild, deletedNodeRightChild)
+        self.assertEqual(replacementNode.LeftChild, deletedNodeLeftChild)
+        self.assertTrue(delResult)
+    
+    def testDeleteLastNode(self):
+        bst = makeFullBST(levelCount = 1)
+        keyToDel = bst.Root.NodeKey
+        delResult = bst.DeleteNodeByKey(keyToDel)
+        self.assertEqual(bst.Root, None)
+        self.assertTrue(delResult)
