@@ -88,7 +88,7 @@ class BST:
         currentNode = FromNode
         while (True):
             nextNode = currentNode.RightChild if FindMax else currentNode.LeftChild
-            if nextNode is None: return currentNode.NodeValue
+            if nextNode is None: return currentNode
             currentNode = nextNode
 	
     def _findSuccessorNode(self, node):
@@ -108,8 +108,8 @@ class BST:
 
     def DeleteNodeByKey(self, key):
         searchResult = self.FindNodeByKey(key)
-        if not searchResult.NodeHasKey:  return False
-            
+        if not searchResult.NodeHasKey:  return False # если узел не найден
+
         deletedNode = searchResult.Node
         deletedNodeChildren = (deletedNode.LeftChild, deletedNode.RightChild)
         deletedNodeParent = deletedNode.Parent
