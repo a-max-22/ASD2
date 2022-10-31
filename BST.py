@@ -1,4 +1,3 @@
-
 class BSTNode:
 	
     def __init__(self, key, val, parent):
@@ -25,7 +24,12 @@ class BST:
         self.Root = node # корень дерева, или None
 
     def FindNodeByKey(self, key):
-        if self.Root is None: return None
+        if self.Root is None:
+            result = BSTFind()
+            result.Node = None
+            result.NodeHasKey = False
+            result.ToLeft = False
+            return result
 
         currentNode = self.Root
         searchIsNotFinished = True
@@ -66,6 +70,10 @@ class BST:
             return False
 
         parent = searchResult.Node
+        if parent is None:
+            self.Root = BSTNode(key, val, None)
+            return True
+
         if searchResult.ToLeft:
             parent.LeftChild = BSTNode(key, val, parent)
         else:
@@ -101,9 +109,9 @@ class BST:
     def DeleteNodeByKey(self, key):
         searchResult = self.FindNodeByKey(key)
         if not searchResult.NodeHasKey:  return False # если узел не найден
-        if searchResult.Node == self.Root:
-            self.Root = None
-            return True
+        #if searchResult.Node == self.Root:
+        #    self.Root = None
+        #    return True
             
         deletedNode = searchResult.Node
         deletedNodeChildren = (deletedNode.LeftChild, deletedNode.RightChild)
@@ -111,7 +119,12 @@ class BST:
         
         replacementNode = self._findSuccessorNode(deletedNode)
         self._replaceChild(deletedNode, replacementNode)
-        if replacementNode is None: return True
+
+        if replacementNode is None and searchResult.Node == self.Root:
+            self.Root = None
+            return True
+        if replacementNode is None: 
+            return True
 
         self._replaceChild(replacementNode.Parent, None)
         replacementNode.LeftChild, replacementNode.RightChild = deletedNodeChildren
