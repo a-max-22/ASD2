@@ -94,7 +94,9 @@ class BST:
     def _findSuccessorNode(self, node):
         isLeaf = (node.LeftChild is None and node.RightChild is None)
         if isLeaf: return None
+
         suceessorCandidate = node.RightChild
+        if suceessorCandidate is None: return node.LeftChild 
 
         while suceessorCandidate.LeftChild is not None:
             suceessorCandidate = suceessorCandidate.LeftChild
@@ -106,26 +108,46 @@ class BST:
         if parent.LeftChild == replacedChildNode: parent.LeftChild = replacementNode
         if parent.RightChild == replacedChildNode: parent.RightChild = replacementNode        
 
+    def _replaceParent(self, modifiedNode, newParent):
+        if modifiedNode is None: return 
+        modifiedNode.Parent = newParent
+
     def DeleteNodeByKey(self, key):
         searchResult = self.FindNodeByKey(key)
-        if not searchResult.NodeHasKey:  return False # если узел не найден
+        if not searchResult.NodeHasKey:  return False
 
-        deletedNode = searchResult.Node
-        deletedNodeChildren = (deletedNode.LeftChild, deletedNode.RightChild)
-        deletedNodeParent = deletedNode.Parent
-        
+        deletedNode = searchResult.Node        
         replacementNode = self._findSuccessorNode(deletedNode)
+
+        if deletedNode == self.Root:
+            self.Root = replacementNode
+        
+        if replacementNode is None:
+            self._replaceChild(deletedNode, None)
+            return True
+
+        if deletedNode.RightChild == replacementNode:
+            replacementNode.Parent = deletedNode.Parent
+            replacementNode.LeftChild = deletedNode.LeftChild
+            self._replaceParent(deletedNode.LeftChild, replacementNode)
+            self._replaceChild(deletedNode, replacementNode)
+            return True
+
+        if deletedNode.LeftChild == replacementNode:
+            replacementNode.Parent = deletedNode.Parent
+            self._replaceChild(deletedNode, replacementNode)
+            return True
+
+        #if we reach here - replacement node is leaf and is left child of it's parent 
+        replacementNode.Parent.LeftChild = replacementNode.RightChild
+        if replacementNode.RightChild is not None:
+            replacementNode.RightChild.Parent = replacementNode.Parent
+        replacementNode.RightChild = deletedNode.RightChild
+        replacementNode.LeftChild = deletedNode.LeftChild
+        replacementNode.Parent = deletedNode.Parent
+        self._replaceParent(deletedNode.LeftChild, replacementNode)
+        self._replaceParent(deletedNode.RightChild, replacementNode)        
         self._replaceChild(deletedNode, replacementNode)
-
-        if replacementNode is None and searchResult.Node == self.Root:
-            self.Root = None
-            return True
-        if replacementNode is None: 
-            return True
-
-        self._replaceChild(replacementNode.Parent, None)
-        replacementNode.LeftChild, replacementNode.RightChild = deletedNodeChildren
-        replacementNode.Parent = deletedNodeParent
         return True
 
     def Count(self):
@@ -133,7 +155,7 @@ class BST:
         nodesList = [self.Root]
         currentNodeIndex = 0
         while currentNodeIndex < len(nodesList) :
-            currentNode : BSTNode = nodesList[currentNodeIndex]
+            currentNode = nodesList[currentNodeIndex]
             if currentNode.LeftChild is not None: nodesList.append(currentNode.LeftChild)
             if currentNode.RightChild is not None: nodesList.append(currentNode.RightChild)
             currentNodeIndex += 1
