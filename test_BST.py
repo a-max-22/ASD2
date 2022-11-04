@@ -544,7 +544,7 @@ class TestDeleteNode(unittest.TestCase):
         self.assertEqual(rootRightChild, replacementRightChild.Parent)
 
         self.assertTrue(delResult)
-        #self.assertTrue(verifyBST(bst))
+        self.assertTrue(verifyBST(bst))
 
 
 class TestBstInGeneral(unittest.TestCase):
@@ -580,3 +580,88 @@ class TestBstInGeneral(unittest.TestCase):
             if len(nodes) > 0:
                 self.assertEqual(bst.FinMinMax(bst.Root, FindMax = True), nodes[-1])
                 self.assertEqual(bst.FinMinMax(bst.Root, FindMax = False), nodes[0])
+
+
+class TestWideAllNodes(unittest.TestCase):
+    def testEmptyTree(self):
+        bst = BST(node = None)
+        nodes = bst.WideAllNodes()
+        self.assertEqual(nodes, tuple())
+    
+    def testSingleNode(self):
+        rootNode = BSTNode(key = 0, val = 0, parent = None)
+        bst = BST(node = rootNode)
+        nodes = bst.WideAllNodes()
+        self.assertEqual(nodes, tuple([rootNode]))
+
+    def testMultipleNodes(self):
+        bst = makeFullBST(levelCount = 3)
+        nodesWide = bst.WideAllNodes()
+        nodesList = getBstNodes(bst)
+        self.assertEqual(tuple(nodesList), nodesWide)
+
+class DeepAllNodes(unittest.TestCase):
+    def testEmptyInOrder(self):
+        bst = BST(node = None)
+        nodes = bst.DeepAllNodes(0)
+        self.assertEqual(nodes, tuple())
+        self.assertTrue(verifyBST(bst))
+    
+    def testEmptyPreOrder(self):
+        bst = BST(node = None)
+        nodes = bst.DeepAllNodes(1)
+        self.assertEqual(nodes, tuple())
+        self.assertTrue(verifyBST(bst))
+
+    def testEmptyPostOrder(self):
+        bst = BST(node = None)
+        nodes = bst.DeepAllNodes(2)
+        self.assertEqual(nodes, tuple())
+        self.assertTrue(verifyBST(bst))
+
+    def testSingleNodeInOrder(self):
+        rootNode = BSTNode(key = 0, val = 0, parent = None)
+        bst = BST(node = rootNode)
+        nodes = bst.DeepAllNodes(0)
+        self.assertEqual(nodes, tuple([rootNode]))
+        self.assertTrue(verifyBST(bst))
+
+    def testSingleNodePreOrder(self):
+        rootNode = BSTNode(key = 0, val = 0, parent = None)
+        bst = BST(node = rootNode)
+        nodes = bst.DeepAllNodes(1)
+        self.assertEqual(nodes, tuple([rootNode]))
+        self.assertTrue(verifyBST(bst))
+
+    def testSingleNodePostOrder(self):
+        rootNode = BSTNode(key = 0, val = 0, parent = None)
+        bst = BST(node = rootNode)
+        nodes = bst.DeepAllNodes(2)
+        self.assertEqual(nodes, tuple([rootNode]))
+        self.assertTrue(verifyBST(bst))
+
+    def testMultiNodesInOrder(self):
+        bst = makeFullBST(levelCount = 8)
+        expectedNodes = getBstNodesAscending(bst)
+        nodes = bst.DeepAllNodes(0)
+        self.assertEqual(nodes, tuple(expectedNodes))
+        self.assertTrue(verifyBST(bst))
+
+    def testMultiNodesPostOrder(self):
+        bst = makeFullBST(levelCount = 3)
+        root = bst.Root
+        expectedNodes = tuple( [root.LeftChild.LeftChild, root.LeftChild.RightChild, root.LeftChild, \
+                                root.RightChild.LeftChild, root.RightChild.RightChild, root.RightChild,
+                                root])
+        nodes = bst.DeepAllNodes(1)
+        self.assertEqual(nodes, expectedNodes)
+        self.assertTrue(verifyBST(bst))
+
+    def testMultiNodesPreOrder(self):
+        bst = makeFullBST(levelCount = 3)
+        root = bst.Root
+        expectedNodes = tuple([root, root.LeftChild, root.LeftChild.LeftChild, root.LeftChild.RightChild, \
+                               root.RightChild, root.RightChild.LeftChild, root.RightChild.RightChild])
+        nodes = bst.DeepAllNodes(2)
+        self.assertEqual(nodes, expectedNodes)
+        self.assertTrue(verifyBST(bst))
