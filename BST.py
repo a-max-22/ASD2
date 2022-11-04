@@ -160,3 +160,28 @@ class BST:
             if currentNode.RightChild is not None: nodesList.append(currentNode.RightChild)
             currentNodeIndex += 1
         return len(nodesList)
+
+    def WideAllNodes(self):
+        if self.Root is None: return tuple()
+        nodes = [self.Root]
+        currentNodeIndex = 0
+        while currentNodeIndex < len(nodes) :
+            currentNode = nodes[currentNodeIndex]
+            if currentNode.LeftChild is not None: nodes.append(currentNode.LeftChild)
+            if currentNode.RightChild is not None: nodes.append(currentNode.RightChild)
+            currentNodeIndex += 1
+        return tuple(nodes)
+    
+
+    def _visitNode(self, node, order):
+        if node is None: return []
+        if order == 0:
+            return self._visitNode(node.LeftChild, order) + [node] + self._visitNode(node.RightChild, order) 
+        if order == 1:
+            return self._visitNode(node.LeftChild, order) + self._visitNode(node.RightChild, order) + [node]
+        if order == 2:
+            return [node] + self._visitNode(node.LeftChild, order) + self._visitNode(node.RightChild, order) 
+
+    def DeepAllNodes(self, order):
+        nodes = self._visitNode(self.Root, order)
+        return tuple(nodes)
