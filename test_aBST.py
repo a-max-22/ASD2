@@ -1,22 +1,22 @@
 import unittest
 from aBST import aBST
 
-def make2DepthABST():
+def make1DepthABST():
     result = aBST(depth = 2)
     result.Tree = [2, 1, 3]    
     return result    
 
-def make3DepthABST():
+def make2DepthABST():
     result = aBST(depth = 3)
     result.Tree = [8, 6, 5, 7, 10, 9, 11]    
     return result
 
-def make4DepthABST():
+def make3DepthABST():
     result = aBST(depth = 4)
     result.Tree = [16, 12, 20, 10, 14, 18, 22, 9, 11, 13, 15, 17, 19, 21, 23]
     return result
 
-def make4DepthNoLeftSubtree():
+def make3DepthNoLeftSubtree():
     result = aBST(depth = 4)
     result.Tree = [16, None, 20, None, None, 18, 22, None, None, None, None, 17, 19, 21, 23]
     return result
@@ -39,14 +39,9 @@ def verifyTree(aBst:aBST):
             return False
     return True
 
-class TestFindKeyIndex(unittest.TestCase):
-    def testFindInEmptyTreeNoPlaceToInsert(self):
-        abst = aBST(depth = 0)
-        index = abst.FindKeyIndex(key = 0)
-        self.assertEqual(index, None)
-    
+class TestFindKeyIndex(unittest.TestCase):    
     def testFindInSingleElementEmptyTree(self):
-        abst = aBST(depth = 1)
+        abst = aBST(depth = 0)
         index = abst.FindKeyIndex(key = 0)
         self.assertEqual(index, 0)
 
@@ -59,32 +54,32 @@ class TestFindKeyIndex(unittest.TestCase):
     
     def testFindAbsentElementLeft(self):
         key = 0
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         index = abst.FindKeyIndex(key)
         self.assertEqual(index, None)
 
     def testFindAbsentElementRight(self):
         key = 50
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         index = abst.FindKeyIndex(key)
         self.assertEqual(index, None)
 
     def testFindPresentElementNonLeaf(self):
         key = 18
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         index = abst.FindKeyIndex(key)
         self.assertEqual(index, 5)
 
     
     def testFindPresentElementLeaf(self):
         key = 21
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         index = abst.FindKeyIndex(key)
         self.assertEqual(index, 13)
     
     def testFindAbsentElementNonLeaf(self):
         key = 18
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         keyIndex = abst.Tree.index(key) 
         abst.Tree[keyIndex] = None
         index = abst.FindKeyIndex(key)
@@ -92,7 +87,7 @@ class TestFindKeyIndex(unittest.TestCase):
 
     def testFindAbsentElementLeaf(self):
         key = 23
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         keyIndex = abst.Tree.index(key) 
         abst.Tree[keyIndex] = None
         index = abst.FindKeyIndex(key)
@@ -100,7 +95,7 @@ class TestFindKeyIndex(unittest.TestCase):
 
     def testFindAbsentElementLeafSubTree(self):
         key = 12
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         keyIndex = abst.Tree.index(key) 
         abst.Tree[keyIndex] = None
         index = abst.FindKeyIndex(key)
@@ -108,7 +103,7 @@ class TestFindKeyIndex(unittest.TestCase):
 
     def testFindAbsentElementLeafSubTree(self):
         key = 12
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         keyIndex = abst.Tree.index(key) 
         abst.Tree[keyIndex] = None
         index = abst.FindKeyIndex(key)
@@ -117,7 +112,7 @@ class TestFindKeyIndex(unittest.TestCase):
     def testFindAbsentElementNoSuitablePlaceToInsert(self):
         keyToDel = 17
         keyToFind = 50
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         keyToDelIndex = abst.Tree.index(keyToDel) 
         abst.Tree[keyToDelIndex] = None
         index = abst.FindKeyIndex(keyToFind)
@@ -129,12 +124,12 @@ class TestAddKey(unittest.TestCase):
     def testInsertIntoEmptyTreeNoPlace(self):
         abst = aBST(depth = 0)
         index = abst.AddKey(key = 0)
-        self.assertEqual(index, -1)
-        self.assertEqual([], abst.Tree)
+        self.assertEqual(index, 0)
+        self.assertEqual([0], abst.Tree)
         self.assertTrue(verifyTree(abst))
 
     def testInsertRoot(self):
-        abst = aBST(depth = 1)
+        abst = aBST(depth = 0)
         newKey = 0
         index = abst.AddKey(key = newKey)
         self.assertEqual(index, 0)
@@ -151,7 +146,7 @@ class TestAddKey(unittest.TestCase):
         self.assertTrue(verifyTree(abst))
     
     def testInsertRootPresentNode(self):
-        abst = make2DepthABST()
+        abst = make1DepthABST()
         keyToInsert = abst.Tree[0]
         oldNodesList  = abst.Tree.copy()
         index = abst.AddKey(key = keyToInsert)
@@ -161,7 +156,7 @@ class TestAddKey(unittest.TestCase):
     
     def testInsertPresentNodeNonLeaf(self):
         key = 18
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         index = abst.AddKey(key)
         oldNodesList  = abst.Tree.copy()
         self.assertEqual(index, 5)
@@ -170,7 +165,7 @@ class TestAddKey(unittest.TestCase):
 
     def testInsertPresentNodeLeaf(self):
         key = 23
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         index = abst.AddKey(key)
         oldNodesList  = abst.Tree.copy()
         self.assertEqual(index, 14)
@@ -179,7 +174,7 @@ class TestAddKey(unittest.TestCase):
     
     def testInsertAbsentLeftSubtree(self):
         key = 12
-        abst  = make4DepthNoLeftSubtree()        
+        abst  = make3DepthNoLeftSubtree()        
         index = abst.AddKey(key)
         self.assertEqual(index, 1)
         self.assertTrue(verifyTree(abst))
@@ -187,7 +182,7 @@ class TestAddKey(unittest.TestCase):
 
     def testInsertAbsentNodeLeadf(self):
         keyToDel = 23
-        abst  = make4DepthABST()
+        abst  = make3DepthABST()
         keyIndex = abst.Tree.index(keyToDel) 
         abst.Tree[keyIndex] = None
         
@@ -199,7 +194,7 @@ class TestAddKey(unittest.TestCase):
         self.assertEqual([16, 12, 20, 10, 14, 18, 22, 9, 11, 13, 15, 17, 19, 21, keyToInsert], abst.Tree)
 
     def testInsertIntoFullTree(self):
-        abst = make4DepthABST()
+        abst = make3DepthABST()
         treeBeforeInsertion = abst.Tree.copy()
         keyToInsert = abst.Tree[-1] + 1
         index = abst.AddKey(keyToInsert)
