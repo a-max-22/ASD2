@@ -1,6 +1,15 @@
 from BalancedBST import BalancedBST, BSTNode
 import unittest
 
+def checkLevelForNode(node:BSTNode, expectedLevel):
+    if node is None: return True
+    if node.Level != expectedLevel:
+        return False
+    return checkLevelForNode(node.LeftChild, expectedLevel+1) and checkLevelForNode(node.RightChild, expectedLevel+1)
+
+
+def checkLevels(bst:BalancedBST):
+    return checkLevelForNode(bst.Root, expectedLevel = 0)
 
 def visitBstNode(node):
     if node is None: return []
@@ -151,6 +160,7 @@ class TestGenerateBalancedTree(unittest.TestCase):
         self.assertEqual(keys, [x.NodeKey for x in nodes])
         self.assertTrue(bbst.IsBalanced(bbst.Root))
         self.assertTrue(verifyBST(bbst))
+        self.assertTrue(checkLevels(bbst))
 
     def testGenerateTreeFromTwoElemList(self):
         keys = [0, 1]
@@ -160,6 +170,7 @@ class TestGenerateBalancedTree(unittest.TestCase):
         self.assertEqual(keys, [x.NodeKey for x in nodes])
         self.assertTrue(bbst.IsBalanced(bbst.Root))
         self.assertTrue(verifyBST(bbst))
+        self.assertTrue(checkLevels(bbst))
 
     def testGenerateTreeFromThreeElemList(self):
         keys = [0, 1, 2]
@@ -169,7 +180,8 @@ class TestGenerateBalancedTree(unittest.TestCase):
         self.assertEqual(keys, [x.NodeKey for x in nodes])
         self.assertTrue(bbst.IsBalanced(bbst.Root))
         self.assertTrue(verifyBST(bbst))
-    
+        self.assertTrue(checkLevels(bbst))
+
     def testGenerateTreeFromFourElemList(self):
         keys = [0, 1, 3, 4]
         bbst = BalancedBST()
@@ -178,6 +190,7 @@ class TestGenerateBalancedTree(unittest.TestCase):
         self.assertEqual(keys, [x.NodeKey for x in nodes])
         self.assertTrue(bbst.IsBalanced(bbst.Root))
         self.assertTrue(verifyBST(bbst))
+        self.assertTrue(checkLevels(bbst))
 
     def testGenerateTreeFromThreeElemList(self):
         keys = [16, 12, 20, 10, 14, 18, 22, 9, 11, 13, 15, 17, 19, 21, 23]
@@ -188,3 +201,4 @@ class TestGenerateBalancedTree(unittest.TestCase):
         self.assertEqual(keys, [x.NodeKey for x in nodes])
         self.assertTrue(bbst.IsBalanced(bbst.Root))
         self.assertTrue(verifyBST(bbst))
+        self.assertTrue(checkLevels(bbst))
