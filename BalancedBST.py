@@ -14,11 +14,12 @@ class BalancedBST:
     	self.Root = None # корень дерева
     
     def MakeNode(self, a, startIndex, endIndex, depth):
-        #print(startIndex, endIndex)
         if endIndex < startIndex:
             return None
         if endIndex - startIndex == 0:
-            return BSTNode(key = a[startIndex], parent = None)
+            leaf =  BSTNode(key = a[startIndex], parent = None)
+            leaf.Level = depth
+            return leaf
         parentIndex = startIndex + (endIndex - startIndex) // 2
         parent = BSTNode(key = a[parentIndex], parent = None)
         leftChild = self.MakeNode(a, startIndex, parentIndex - 1, depth + 1)
