@@ -353,4 +353,101 @@ class TestRemoveVertex(unittest.TestCase):
         self.assertTrue(isVertexWithSpecifiedValuePresent(g, vertexValue = newVertexValue1))
         self.assertTrue(isVertexWithSpecifiedValuePresent(g, vertexValue = newVertexValue3))
         self.assertFalse(isVertexWithSpecifiedValuePresent(g, vertexValue = newVertexValue2))
+        self.assertTrue(validateGraph(g))
+
+
+def determineVerticesCount(edgesList):
+    vertices = set()
+    for edge in edgesList:
+        vertices.add(edge[0])
+        vertices.add(edge[1])
+
+    return len(vertices)        
+
+def makeGraphByEdgeList(edgesList):
+    verticesCount = determineVerticesCount(edgesList)
+    g = SimpleGraph(size = verticesCount)
+    for v in range(verticesCount):
+        g.AddVertex(v)
+    for edge in edgesList:
+        g.AddEdge(edge[0], edge[1])
+    return g
+
+def selectVerticesByIndices(g:SimpleGraph, verticesIndexesList):
+    return [g.vertex[v] for v in verticesIndexesList]
+
+class TestDepthFirstSearch(unittest.TestCase):
+    def testDfsNonExistentNode(self):
+        g = SimpleGraph(size = 3)
+        vertexVal = 3
+        g.AddVertex(vertexVal) 
+        self.assertTrue(isVertexWithSpecifiedValuePresent(g, vertexValue = vertexVal))
+        self.assertTrue(validateGraph(g))
+                
+        way = g.DepthFirstSearch(0,1)
+        self.assertEqual(way, [])
+        self.assertTrue(validateGraph(g))        
+
+
+    def testDfsEmptyGraph(self):
+        g = SimpleGraph(size = 3)
+        way = g.DepthFirstSearch(0,1)
+        self.assertEqual(way, [])
+        self.assertTrue(validateGraph(g))        
+
+    def testDfsOneEdge(self):
+        g = makeGraphByEdgeList([(0,1)])
+        expectedWay = selectVerticesByIndices(g, [0,1])
+        actualWay = g.DepthFirstSearch(0,1)
+        self.assertEqual(actualWay, expectedWay)
+        self.assertTrue(validateGraph(g))        
+
+    def testDfsTwoEdges(self):
+        g = makeGraphByEdgeList([(0,1),(1,2)])
+        expectedWay = selectVerticesByIndices(g, [0, 1, 2])
+        actualWay = g.DepthFirstSearch(0,2)
+        self.assertEqual(actualWay, expectedWay)
+        self.assertTrue(validateGraph(g))        
+
+    def testDfsMultiEdges(self):
+        g = makeGraphByEdgeList([(0,1),(1,2), (0,3), (3,4)])
+        expectedWay = selectVerticesByIndices(g, [0, 3, 4])
+        actualWay = g.DepthFirstSearch(0, 4)
+        self.assertEqual(actualWay, expectedWay)
+        self.assertTrue(validateGraph(g))        
+
+    def testDfsCycleEdges(self):
+        g = makeGraphByEdgeList([(0,1),(1,2), (2,3), (0,4), (4,3)])
+        expectedWay = selectVerticesByIndices(g, [0, 1, 2, 3])
+        actualWay = g.DepthFirstSearch(0, 3)
+        self.assertEqual(actualWay, expectedWay)
+
+    def testDfsCycleEdges2(self):
+        g = makeGraphByEdgeList([(0,1),(1,2), (2,3), (3,4), (4,5), (5,6), (6,0)])
+        expectedWay = selectVerticesByIndices(g, [0, 1, 2, 3, 4, 5, 6])
+        actualWay = g.DepthFirstSearch(0, 6)
+        self.assertEqual(actualWay, expectedWay)
+
+    def testDfsNoEdges(self):
+        g = SimpleGraph(size = 2)
+        g.AddVertex(0)
+        g.AddVertex(1)
+        actualWay = g.DepthFirstSearch(0, 1)
+        self.assertEqual(actualWay, [])
+        self.assertTrue(validateGraph(g))
+
+    def testDfsNoWay(self):
+        g = makeGraphByEdgeList([(0,1),(1,2), (2,3), (4,5), (5,6), (6,7)])
+        actualWay = g.DepthFirstSearch(0, 7)
+        self.assertEqual(actualWay, [])
+        self.assertTrue(validateGraph(g))
+
+
+    def testSequentialDfs(self):
+        g = makeGraphByEdgeList([(0,1),(1,2), (2,3), (0,4), (4,3)])
+        expectedWay = selectVerticesByIndices(g, [0, 1, 2, 3])
+        actualWay = g.DepthFirstSearch(0, 3)
+        self.assertEqual(actualWay, expectedWay)
+        actualWay = g.DepthFirstSearch(0, 3)
+        self.assertEqual(actualWay, expectedWay)
         self.assertTrue(validateGraph(g))        

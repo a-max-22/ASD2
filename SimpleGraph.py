@@ -2,6 +2,7 @@ class Vertex:
 
     def __init__(self, val):
         self.Value = val
+        self.Hit = False
   
 class SimpleGraph:
 	
@@ -66,47 +67,41 @@ class SimpleGraph:
             if self.vertex[i] is not None: return i
         return None
 
-    def GetAllAdjacentVertices(self, vertexIndex):
-        adjacentVertices = []
+    def GetFirstAdjacentUnvisitedVertex(self, vertexIndex):
         for i in range(self.max_vertex):
+            if self.vertex[i] is None: continue
             if self.m_adjacency[vertexIndex][i] != 1: continue
-            adjacentVertices.append(i)
-        return adjacentVertices
+            if self.vertex[i].Hit: continue
+            return i
+        return None
 
-    def FindSubtreesVerticesCount(self, vertexIndex, subtreeVerticesCounts):
-        adjacentVertices = self.GetAllAdjacentVertices(vertexIndex)
-        for adjacentVertIndex in adjacentVertices:
-            if subtreeVerticesCounts[adjacentVertIndex] > 0: continue
-            subtreeVerticesCounts[vertexIndex] += 1
-            count = self.FindSubtreesVerticesCount(adjacentVertIndex, subtreeVerticesCounts)
-            subtreeVerticesCounts[vertexIndex] += count
-        return subtreeVerticesCounts[vertexIndex]
+    def _clearAllHitFlags(self):
+        for v in self.vertex:
+            v.Hit = False
 
-    def FindEdgesToRemove(self, vertexIndex, subtreeVerticesCounts):
-        edgesToRemove = []
-        adjacentVertices = self.GetAllAdjacentVertices(vertexIndex)
-        for adjacentVertIndex in adjacentVertices:
-            if subtreeVerticesCounts[adjacentVertIndex] > subtreeVerticesCounts[vertexIndex]: continue
-            isSubtreeOdd = (subtreeVerticesCounts[adjacentVertIndex] + 1) % 2 == 0
-            mayDeleteEdge =  isSubtreeOdd
-            if mayDeleteEdge:
-                edgesToRemove.append((vertexIndex, adjacentVertIndex))
-            edgesToRemove += self.FindEdgesToRemove(adjacentVertIndex, subtreeVerticesCounts)
-        return edgesToRemove
-
-    # для каждой вершины определить, сколько вершин в её поддеревьях. (исключая родительскую вершину)
-    def EvenTrees(self):
-        initialVertexIndex = self.FindFirstVertexIndex(0)
-        if initialVertexIndex is None: return [] 
-        edgesIndexesToRemove = []
-        subtreeVerticesCounts = [0] * self.max_vertex
-        self.FindSubtreesVerticesCount(initialVertexIndex, subtreeVerticesCounts)
-        if (subtreeVerticesCounts[initialVertexIndex] + 1) % 2 != 0:
+    def DepthFirstSearch(self, VFrom, VTo):
+        if not self._isVertexWithIndexExist(VFrom) or not self._isVertexWithIndexExist(VTo):
             return []
+        self._clearAllHitFlags()
+
+        visitedVerticesStack = []        
+        visitedVerticesStack.append(VFrom)
+
+        while len(visitedVerticesStack) > 0:
+            currentVertex = visitedVerticesStack[-1]
+            self.vertex[currentVertex].Hit = True
+
+            nextAdjacentVertex = self.GetFirstAdjacentUnvisitedVertex(currentVertex)
+                
+            if nextAdjacentVertex == VTo:
+                visitedVerticesStack.append(nextAdjacentVertex)
+                return [self.vertex[v] for v in visitedVerticesStack]
+
+            if nextAdjacentVertex is not None:                
+                visitedVerticesStack.append(nextAdjacentVertex)
+                currentVertex = nextAdjacentVertex
+                continue
             
-        edgesIndexesToRemove = self.FindEdgesToRemove(initialVertexIndex, subtreeVerticesCounts)        
-        vertexesListToRemove = []
-        for indexes in edgesIndexesToRemove:
-            vertexesListToRemove.append(self.vertex[indexes[0]])
-            vertexesListToRemove.append(self.vertex[indexes[1]])
-        return vertexesListToRemove
+            visitedVerticesStack.pop()
+
+        return []
