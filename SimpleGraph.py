@@ -30,11 +30,11 @@ class SimpleGraph:
     # здесь и далее, параметры v -- индекс вершины
     # в списке  vertex
     def RemoveVertex(self, v):
-        if self._isVertexWithIndexExist(v):            
-            for index in range(self.max_vertex):
-                if self.IsEdge(v, index):
-                    self.RemoveEdge(v, index)
-            self.vertex[v] = None
+        if not self._isVertexWithIndexExist(v): return
+        for index in range(self.max_vertex):
+            if self.IsEdge(v, index):
+                self.RemoveEdge(v, index)
+        self.vertex[v] = None
 
 
     def _isVertexIndexValid(self, vertexIndex):
@@ -75,6 +75,15 @@ class SimpleGraph:
             return i
         return None
 
+    def GetAllAdjacentUnvisitedVertices(self, vertexIndex):
+        unsvisitedVertices = []
+        for i in range(self.max_vertex):
+            if self.vertex[i] is None: continue
+            if self.m_adjacency[vertexIndex][i] != 1: continue
+            if self.vertex[i].Hit: continue
+            unsvisitedVertices.append(i)
+        return unsvisitedVertices
+
     def _clearAllHitFlags(self):
         for v in self.vertex:
             v.Hit = False
@@ -105,3 +114,43 @@ class SimpleGraph:
             visitedVerticesStack.pop()
 
         return []
+
+    def _constructPathFromParentsArray(self, parents,  initialIndex, finalIndex):
+        i = initialIndex
+        path = []
+        iterationsLimit = self.max_vertex
+        itersCount = 0
+        while i != None and itersCount <= iterationsLimit:
+            path.append(i)
+            i = parents[i]
+            itersCount += 1
+        assert itersCount <= iterationsLimit, "_constructPathFromParentsArray(): Iterations limit exceeded"
+        return path
+
+    def BreadthFirstSearch(self, VFrom, VTo):
+        if not self._isVertexWithIndexExist(VFrom) or not self._isVertexWithIndexExist(VTo):
+            return []
+        self._clearAllHitFlags()
+        
+        verticesIndicesQueue = []
+        verticesIndicesQueue.append(VFrom) 
+        parents = [None]*self.max_vertex
+
+        while len(verticesIndicesQueue) > 0:
+            currentVertexIndex = verticesIndicesQueue[0]
+            self.vertex[currentVertexIndex].Hit = True
+            del verticesIndicesQueue[0]
+            
+            unvisitedVertices = self.GetAllAdjacentUnvisitedVertices(currentVertexIndex)
+            verticesIndicesQueue += unvisitedVertices
+
+            for i in unvisitedVertices:
+                if parents[i] is None: 
+                    parents[i] = currentVertexIndex
+            
+            if currentVertexIndex == VTo:
+                way  = self._constructPathFromParentsArray(parents, currentVertexIndex, VFrom)
+                return [self.vertex[v] for v in way[::-1]]
+
+        return []
+    
