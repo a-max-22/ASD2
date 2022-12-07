@@ -44,8 +44,7 @@ class SimpleGraph:
     def _isVertexWithIndexExist(self, vertexIndex):
         if self._isVertexIndexValid(vertexIndex): 
             return  self.vertex[vertexIndex] is not None
-        else:
-            return False
+        return False
 
     def IsEdge(self, v1, v2):
         if self._isVertexWithIndexExist(v1) and self._isVertexWithIndexExist(v2):
@@ -86,6 +85,7 @@ class SimpleGraph:
 
     def _clearAllHitFlags(self):
         for v in self.vertex:
+            if v is None: continue
             v.Hit = False
 
     def DepthFirstSearch(self, VFrom, VTo):
@@ -93,7 +93,7 @@ class SimpleGraph:
             return []
         self._clearAllHitFlags()
 
-        visitedVerticesStack = []        
+        visitedVerticesStack = []
         visitedVerticesStack.append(VFrom)
 
         while len(visitedVerticesStack) > 0:
@@ -154,3 +154,35 @@ class SimpleGraph:
 
         return []
     
+    def FindMutuallyAdjacentVertices(self, vertIndLst):
+        result = set()
+        for i in range(len(vertIndLst)):
+            for j in range(i + 1, len(vertIndLst)):
+                if not self.IsEdge(vertIndLst[i], vertIndLst[j]): continue
+                result.add(vertIndLst[i])
+                result.add(vertIndLst[j])
+        return result
+
+
+    def WeakVertices(self):
+        weakVertices = []
+        self._clearAllHitFlags()
+        for vertexIndex in range(self.max_vertex):
+            if self.vertex[vertexIndex] is None: continue
+            if self.vertex[vertexIndex].Hit: continue
+            adjacentVerticesForCurrent = self.GetAllAdjacentUnvisitedVertices(vertexIndex)
+            triangleVertices = self.FindMutuallyAdjacentVertices(adjacentVerticesForCurrent)
+
+            if vertexIndex in triangleVertices: triangleVertices.remove(vertexIndex)
+            if len(triangleVertices) == 0: continue
+            for v in triangleVertices:
+                self.vertex[v].Hit = True
+            self.vertex[vertexIndex].Hit = True
+
+        for vertexIndex in range(self.max_vertex):
+            if self.vertex[vertexIndex] is None: continue
+            if self.vertex[vertexIndex].Hit: continue
+            weakVertices.append(self.vertex[vertexIndex])
+
+        # возвращает список узлов вне треугольников
+        return weakVertices
